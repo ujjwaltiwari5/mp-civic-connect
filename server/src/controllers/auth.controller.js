@@ -83,6 +83,52 @@ export const logout = (req, res) => {
 export const getMe = async (req, res) => {
   res.status(200).json({
     success: true,
-    data: { id: req.user._id, name: req.user.name, email: req.user.email, role: req.user.role },
+    data: {
+      id: req.user._id,
+      name: req.user.name,
+      email: req.user.email,
+      phone: req.user.phone,
+      role: req.user.role,
+    },
   });
+};
+const updateProfileSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters").optional(),
+  phone: z.string().optional(),
+});
+
+export const updateProfile = async (req, res, next) => {
+  try {
+    const parsed = updateProfileSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ success: false, message: parsed.error.issues[0].message });
+    }
+    const { name, phone } = parsed.data;
+    if (name === undefined && phone === undefined) {
+      return res.status(400).json({ success: false, message: "Nothing to update" });
+    }
+
+    const updates = {};
+    if (name !== undefined) updates.name = name;
+    if (phone !== undefined) updates.phone = phone;
+
+    const user = await User.findByIdAndUpdate(req.user._id, updates, {
+      new: true,
+      runValidators: true,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      data: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
 };
