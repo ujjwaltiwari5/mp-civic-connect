@@ -22,6 +22,8 @@ export default function Navbar() {
                 <Link to="/admin/categories" className="text-gray-600 hover:text-teal-700">Categories</Link>
               </>
             )}
+            <Link to="/complaints/new" className="text-gray-600 hover:text-teal-700">New Complaint</Link>
+            <Link to="/complaints/mine" className="text-gray-600 hover:text-teal-700">My Complaints</Link>
             <span className="text-gray-600">Hi, {user.name}</span>
             <Link to="/profile" className="text-teal-700 hover:underline">Profile</Link>
             <button onClick={handleLogout} className="text-red-600 hover:underline">Logout</button>

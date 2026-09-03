@@ -6,6 +6,8 @@ import Register from "./pages/Register";
 import Profile from "./pages/Profile";
 import Departments from "./pages/admin/Departments";
 import Categories from "./pages/admin/Categories";
+import NewComplaint from "./pages/NewComplaint";
+import MyComplaints from "./pages/MyComplaints";
 import ProtectedRoute from "./components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 
@@ -38,6 +40,22 @@ function App() {
           element={
             <ProtectedRoute roles={["admin"]}>
               <Categories />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/complaints/new"
+          element={
+            <ProtectedRoute>
+              <NewComplaint />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/complaints/mine"
+          element={
+            <ProtectedRoute>
+              <MyComplaints />
             </ProtectedRoute>
           }
         />
