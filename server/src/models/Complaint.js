@@ -30,9 +30,24 @@ const complaintSchema = new mongoose.Schema(
       ref: "Department",
       default: null,
     },
-        images: {
+    images: {
       type: [String], // Cloudinary secure URLs
       default: [],
+    },
+    location: {
+      type: {
+        type: String,
+        enum: ["Point"],
+        default: "Point",
+      },
+      coordinates: {
+        type: [Number], // [lng, lat]
+        required: true,
+      },
+    },
+    address: {
+      type: String,
+      default: null,
     },
     status: {
       type: String,
@@ -42,8 +57,7 @@ const complaintSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
-// admin table + citizen list dono is combination par query karenge
 complaintSchema.index({ reporter: 1, createdAt: -1 });
+complaintSchema.index({ location: "2dsphere" });
 
 export default mongoose.model("Complaint", complaintSchema);

@@ -1,12 +1,26 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
 import api from "../services/api";
 import { createComplaint } from "../services/complaints";
+
+const BHOPAL_CENTER = [23.2599, 77.4126];
+
+function LocationPicker({ position, setPosition }) {
+  useMapEvents({
+    click(e) {
+      setPosition(e.latlng);
+    },
+  });
+  return position ? <Marker position={position} /> : null;
+}
 
 export default function NewComplaint() {
   const [categories, setCategories] = useState([]);
   const [form, setForm] = useState({ title: "", description: "", category: "" });
   const [images, setImages] = useState([]);
+  const [position, setPosition] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -18,12 +32,20 @@ export default function NewComplaint() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
+    if (!position) {
+      setError("Please mark the location on map");
+      return;
+    }
+
     setLoading(true);
     try {
       const formData = new FormData();
       formData.append("title", form.title);
       formData.append("description", form.description);
       formData.append("category", form.category);
+      formData.append("lat", position.lat);
+      formData.append("lng", position.lng);
       images.forEach((img) => formData.append("images", img));
 
       await createComplaint(formData);
@@ -76,6 +98,29 @@ export default function NewComplaint() {
             multiple
             onChange={(e) => setImages(Array.from(e.target.files).slice(0, 5))}
           />
+        </div>
+        <div>
+          <label className="block text-sm text-gray-600 mb-1">
+            Complaint location (Mark the location on map)
+          </label>
+          <div className="h-64 w-full rounded overflow-hidden border">
+            <MapContainer
+              center={BHOPAL_CENTER}
+              zoom={12}
+              style={{ height: "100%", width: "100%" }}
+            >
+              <TileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution="&copy; OpenStreetMap contributors"
+              />
+              <LocationPicker position={position} setPosition={setPosition} />
+            </MapContainer>
+          </div>
+          {position && (
+            <p className="text-xs text-gray-500 mt-1">
+              Selected: {position.lat.toFixed(5)}, {position.lng.toFixed(5)}
+            </p>
+          )}
         </div>
         <button
           className="bg-teal-700 text-white px-4 py-2 rounded"
