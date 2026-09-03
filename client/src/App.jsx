@@ -10,6 +10,7 @@ import NewComplaint from "./pages/NewComplaint";
 import MyComplaints from "./pages/MyComplaints";
 import ProtectedRoute from "./components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
+import ComplaintDetail from "./pages/ComplaintDetail";
 
 function App() {
   return (
@@ -56,6 +57,14 @@ function App() {
           element={
             <ProtectedRoute>
               <MyComplaints />
+            </ProtectedRoute>
+          }
+        />
+                <Route
+          path="/complaints/:id"
+          element={
+            <ProtectedRoute>
+              <ComplaintDetail />
             </ProtectedRoute>
           }
         />

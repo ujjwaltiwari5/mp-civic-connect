@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { getMyComplaints } from "../services/complaints";
+import { Link } from "react-router-dom";
 
 export default function MyComplaints() {
   const [complaints, setComplaints] = useState([]);
@@ -33,23 +34,31 @@ export default function MyComplaints() {
               </div>
             )}
             {coords && (
-              <div className="h-32 w-full rounded overflow-hidden border mt-2">
-                <MapContainer
-                  center={[coords[1], coords[0]]}
-                  zoom={14}
-                  style={{ height: "100%", width: "100%" }}
-                  dragging={false}
-                  scrollWheelZoom={false}
-                  doubleClickZoom={false}
-                  zoomControl={false}
+              <>
+                <div className="h-32 w-full rounded overflow-hidden border mt-2">
+                  <MapContainer
+                    center={[coords[1], coords[0]]}
+                    zoom={14}
+                    style={{ height: "100%", width: "100%" }}
+                    dragging={false}
+                    scrollWheelZoom={false}
+                    doubleClickZoom={false}
+                    zoomControl={false}
+                  >
+                    <TileLayer
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      attribution="&copy; OpenStreetMap contributors"
+                    />
+                    <Marker position={[coords[1], coords[0]]} />
+                  </MapContainer>
+                </div>
+                <Link
+                  to={`/complaints/${c._id}`}
+                  className="text-teal-700 hover:underline text-xs mt-2 inline-block"
                 >
-                  <TileLayer
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    attribution="&copy; OpenStreetMap contributors"
-                  />
-                  <Marker position={[coords[1], coords[0]]} />
-                </MapContainer>
-              </div>
+                  View Details →
+                </Link>
+              </>
             )}
           </div>
         );
