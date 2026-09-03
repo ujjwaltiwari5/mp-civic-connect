@@ -16,6 +16,12 @@ export default function Navbar() {
       <div className="flex items-center gap-4 text-sm">
         {user ? (
           <>
+            {user.role === "admin" && (
+              <>
+                <Link to="/admin/departments" className="text-gray-600 hover:text-teal-700">Departments</Link>
+                <Link to="/admin/categories" className="text-gray-600 hover:text-teal-700">Categories</Link>
+              </>
+            )}
             <span className="text-gray-600">Hi, {user.name}</span>
             <Link to="/profile" className="text-teal-700 hover:underline">Profile</Link>
             <button onClick={handleLogout} className="text-red-600 hover:underline">Logout</button>
