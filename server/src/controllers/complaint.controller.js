@@ -101,13 +101,15 @@ export const getComplaintById = async (req, res) => {
       });
     }
 
-    if (complaint.reporter.toString() !== req.user._id.toString()) {
-      return res.status(403).json({
-        success: false,
-        message: "Not authorized to view this complaint",
-      });
-    }
-
+      if (
+    complaint.reporter.toString() !== req.user._id.toString() &&
+    req.user.role !== "admin"
+  ) {
+    return res.status(403).json({
+      success: false,
+      message: "Not authorized to view this complaint",
+    });
+  }
     const timeline = await ComplaintUpdate.find({ complaint: complaint._id })
       .populate("updatedBy", "name")
       .sort({ createdAt: 1 });
@@ -116,6 +118,64 @@ export const getComplaintById = async (req, res) => {
       success: true,
       data: { complaint, timeline },
       message: "Complaint fetched",
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong",
+      error: err.message,
+    });
+  }
+};
+const ALLOWED_SORT_FIELDS = ["createdAt", "status", "title"];
+
+export const getAllComplaints = async (req, res) => {
+  try {
+    const {
+      status,
+      category,
+      department,
+      search,
+      sortBy = "createdAt",
+      order = "desc",
+      page = 1,
+      limit = 10,
+    } = req.query;
+
+    const filter = {};
+    if (status) filter.status = status;
+    if (category) filter.category = category;
+    if (department) filter.department = department;
+    if (search) {
+      filter.$or = [
+        { title: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    const sortField = ALLOWED_SORT_FIELDS.includes(sortBy) ? sortBy : "createdAt";
+    const sortOrder = order === "asc" ? 1 : -1;
+
+    const pageNum = Math.max(1, Number(page) || 1);
+    const limitNum = Math.max(1, Number(limit) || 10);
+    const skip = (pageNum - 1) * limitNum;
+
+    const [complaints, total] = await Promise.all([
+      Complaint.find(filter)
+        .populate("category", "name")
+        .populate("department", "name")
+        .populate("reporter", "name email")
+        .sort({ [sortField]: sortOrder })
+        .skip(skip)
+        .limit(limitNum),
+      Complaint.countDocuments(filter),
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      data: complaints,
+      message: "Complaints fetched",
+      meta: { page: pageNum, limit: limitNum, total },
     });
   } catch (err) {
     return res.status(500).json({

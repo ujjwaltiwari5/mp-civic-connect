@@ -6,6 +6,8 @@ import Register from "./pages/Register";
 import Profile from "./pages/Profile";
 import Departments from "./pages/admin/Departments";
 import Categories from "./pages/admin/Categories";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminComplaints from "./pages/admin/AdminComplaints";
 import NewComplaint from "./pages/NewComplaint";
 import MyComplaints from "./pages/MyComplaints";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -44,6 +46,22 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+  path="/admin"
+  element={
+    <ProtectedRoute roles={["admin"]}>
+      <AdminDashboard />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/admin/complaints"
+  element={
+    <ProtectedRoute roles={["admin"]}>
+      <AdminComplaints />
+    </ProtectedRoute>
+  }
+/>
         <Route
           path="/complaints/new"
           element={

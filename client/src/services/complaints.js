@@ -8,3 +8,4 @@ export const createComplaint = (formData) =>
 export const getMyComplaints = () => api.get("/complaints/mine");
 
 export const getComplaintById = (id) => api.get(`/complaints/${id}`);
+export const getAllComplaints = (params) => api.get("/complaints", { params });

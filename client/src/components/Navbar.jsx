@@ -18,6 +18,8 @@ export default function Navbar() {
           <>
             {user.role === "admin" && (
               <>
+                <Link to="/admin" className="text-gray-600 hover:text-teal-700">Admin Dashboard</Link>
+                <Link to="/admin/complaints" className="text-gray-600 hover:text-teal-700">All Complaints</Link>
                 <Link to="/admin/departments" className="text-gray-600 hover:text-teal-700">Departments</Link>
                 <Link to="/admin/categories" className="text-gray-600 hover:text-teal-700">Categories</Link>
               </>
