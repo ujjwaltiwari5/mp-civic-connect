@@ -6,6 +6,7 @@ import { createComplaint } from "../services/complaints";
 export default function NewComplaint() {
   const [categories, setCategories] = useState([]);
   const [form, setForm] = useState({ title: "", description: "", category: "" });
+  const [images, setImages] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -19,7 +20,13 @@ export default function NewComplaint() {
     setError("");
     setLoading(true);
     try {
-      await createComplaint(form);
+      const formData = new FormData();
+      formData.append("title", form.title);
+      formData.append("description", form.description);
+      formData.append("category", form.category);
+      images.forEach((img) => formData.append("images", img));
+
+      await createComplaint(formData);
       navigate("/complaints/mine");
     } catch (err) {
       setError(err.response?.data?.message || "Submit failed");
@@ -59,6 +66,17 @@ export default function NewComplaint() {
             <option key={c._id} value={c._id}>{c.name}</option>
           ))}
         </select>
+        <div>
+          <label className="block text-sm text-gray-600 mb-1">
+            Photos (optional, up to 5)
+          </label>
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={(e) => setImages(Array.from(e.target.files).slice(0, 5))}
+          />
+        </div>
         <button
           className="bg-teal-700 text-white px-4 py-2 rounded"
           disabled={loading}

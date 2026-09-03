@@ -28,11 +28,14 @@ export const createComplaint = async (req, res) => {
       });
     }
 
+    const images = (req.files || []).map((f) => f.path); // Cloudinary URLs
+
     const complaint = await Complaint.create({
       reporter: req.user._id,
       title,
       description,
       category,
+      images,
     });
 
     return res.status(201).json({
@@ -48,7 +51,6 @@ export const createComplaint = async (req, res) => {
     });
   }
 };
-
 export const getMyComplaints = async (req, res) => {
   try {
     const complaints = await Complaint.find({ reporter: req.user._id })

@@ -30,6 +30,10 @@ const complaintSchema = new mongoose.Schema(
       ref: "Department",
       default: null,
     },
+        images: {
+      type: [String], // Cloudinary secure URLs
+      default: [],
+    },
     status: {
       type: String,
       enum: ["submitted", "assigned", "in_progress", "resolved", "rejected"],

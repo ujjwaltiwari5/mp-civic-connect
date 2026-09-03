@@ -20,6 +20,18 @@ export default function MyComplaints() {
           </div>
           <p className="text-sm text-gray-600">{c.category?.name}</p>
           <p className="text-sm mt-1">{c.description}</p>
+          {c.images && c.images.length > 0 && (
+            <div className="flex gap-2 mt-2">
+              {c.images.map((url, i) => (
+                <img
+                  key={i}
+                  src={url}
+                  alt="complaint"
+                  className="w-16 h-16 object-cover rounded border"
+                />
+              ))}
+            </div>
+          )}
         </div>
       ))}
     </div>
