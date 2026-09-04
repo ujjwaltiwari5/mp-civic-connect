@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../services/api";
-import { getAllComplaints } from "../../services/complaints";
+import { getAllComplaints, assignDepartment } from "../../services/complaints";
 
-const STATUS_OPTIONS = ["submitted", "in_progress", "resolved", "rejected"];
+const STATUS_OPTIONS = ["submitted", "assigned", "in_progress", "resolved", "rejected"];
 
 export default function AdminComplaints() {
   const [complaints, setComplaints] = useState([]);
@@ -43,6 +43,26 @@ export default function AdminComplaints() {
 
   const updateFilter = (key, value) => {
     setFilters((f) => ({ ...f, [key]: value, page: 1 }));
+  };
+
+  const handleAssign = async (complaintId, departmentId) => {
+    if (!departmentId) return;
+    try {
+      await assignDepartment(complaintId, departmentId);
+      setComplaints((prev) =>
+        prev.map((c) =>
+          c._id === complaintId
+            ? {
+                ...c,
+                department: departments.find((d) => d._id === departmentId),
+                status: "assigned",
+              }
+            : c
+        )
+      );
+    } catch {
+      alert("Assign fail ho gaya, dobara try karo.");
+    }
   };
 
   const totalPages = Math.max(1, Math.ceil(meta.total / meta.limit));
@@ -132,7 +152,18 @@ export default function AdminComplaints() {
                 <tr key={c._id} className="border-t">
                   <td className="px-3 py-2">{c.title}</td>
                   <td className="px-3 py-2">{c.category?.name}</td>
-                  <td className="px-3 py-2">{c.department?.name || "-"}</td>
+                  <td className="px-3 py-2">
+                    <select
+                      value={c.department?._id || ""}
+                      onChange={(e) => handleAssign(c._id, e.target.value)}
+                      className="border rounded px-1.5 py-1 text-xs"
+                    >
+                      <option value="">Unassigned</option>
+                      {departments.map((d) => (
+                        <option key={d._id} value={d._id}>{d.name}</option>
+                      ))}
+                    </select>
+                  </td>
                   <td className="px-3 py-2">
                     <span className="text-xs px-2 py-0.5 rounded bg-gray-100">{c.status}</span>
                   </td>

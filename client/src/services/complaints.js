@@ -9,3 +9,5 @@ export const getMyComplaints = () => api.get("/complaints/mine");
 
 export const getComplaintById = (id) => api.get(`/complaints/${id}`);
 export const getAllComplaints = (params) => api.get("/complaints", { params });
+export const assignDepartment = (id, department) =>
+  api.patch(`/complaints/${id}/assign`, { department });

@@ -3,6 +3,7 @@ import { z } from "zod";
 import Complaint from "../models/Complaint.js";
 import Category from "../models/Category.js";
 import { reverseGeocode } from "../utils/geocode.js";
+import Department from "../models/Department.js";
 const createComplaintSchema = z.object({
   title: z.string().trim().min(3, "Title too short").max(120),
   description: z.string().trim().min(10, "Description too short").max(1000),
@@ -176,6 +177,61 @@ export const getAllComplaints = async (req, res) => {
       data: complaints,
       message: "Complaints fetched",
       meta: { page: pageNum, limit: limitNum, total },
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong",
+      error: err.message,
+    });
+  }
+};
+export const assignDepartment = async (req, res) => {
+  try {
+    const { department } = req.body;
+
+    if (!department) {
+      return res.status(400).json({
+        success: false,
+        message: "department is required",
+      });
+    }
+
+    const departmentExists = await Department.findById(department);
+    if (!departmentExists) {
+      return res.status(404).json({
+        success: false,
+        message: "Department not found",
+      });
+    }
+
+    const complaint = await Complaint.findByIdAndUpdate(
+      req.params.id,
+      { department, status: "assigned" },
+      { new: true, runValidators: true }
+    )
+      .populate("category", "name")
+      .populate("department", "name")
+      .populate("reporter", "name email");
+
+    if (!complaint) {
+      return res.status(404).json({
+        success: false,
+        message: "Complaint not found",
+      });
+    }
+
+    await ComplaintUpdate.create({
+      complaint: complaint._id,
+      status: "assigned",
+      note: `Assigned to ${departmentExists.name}`,
+      updatedBy: req.user._id,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: complaint,
+      message: "Complaint assigned",
     });
   } catch (err) {
     return res.status(500).json({
