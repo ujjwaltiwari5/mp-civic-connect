@@ -6,6 +6,8 @@ import Register from "./pages/Register";
 import Profile from "./pages/Profile";
 import Departments from "./pages/admin/Departments";
 import Categories from "./pages/admin/Categories";
+import DepartmentComplaints from "./pages/department/DepartmentComplaints";
+import UpdateComplaint from "./pages/department/UpdateComplaint";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminComplaints from "./pages/admin/AdminComplaints";
 import NewComplaint from "./pages/NewComplaint";
@@ -78,12 +80,28 @@ function App() {
             </ProtectedRoute>
           }
         />
-                <Route
+         <Route
           path="/complaints/:id"
           element={
             <ProtectedRoute>
               <ComplaintDetail />
             </ProtectedRoute>
+          }
+        />
+        <Route
+         path="/department/complaints"
+         element={
+         <ProtectedRoute roles={["department_user"]}>
+         <DepartmentComplaints />
+         </ProtectedRoute>
+        }
+       />
+        <Route
+          path="/department/complaints/:id/update"
+          element={
+          <ProtectedRoute roles={["department_user"]}>
+          <UpdateComplaint />
+         </ProtectedRoute>
           }
         />
         <Route path="*" element={<NotFound />} />

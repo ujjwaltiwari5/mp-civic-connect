@@ -101,11 +101,15 @@ export const getComplaintById = async (req, res) => {
         message: "Complaint not found",
       });
     }
+        const isOwner = complaint.reporter.toString() === req.user._id.toString();
+  const isAdmin = req.user.role === "admin";
+  const isAssignedDept =
+    req.user.role === "department_user" &&
+    complaint.department &&
+    req.user.department &&
+    complaint.department._id.toString() === req.user.department.toString();
 
-      if (
-    complaint.reporter.toString() !== req.user._id.toString() &&
-    req.user.role !== "admin"
-  ) {
+  if (!isOwner && !isAdmin && !isAssignedDept) {
     return res.status(403).json({
       success: false,
       message: "Not authorized to view this complaint",
@@ -232,6 +236,132 @@ export const assignDepartment = async (req, res) => {
       success: true,
       data: complaint,
       message: "Complaint assigned",
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong",
+      error: err.message,
+    });
+  }
+};
+export const getAssignedComplaints = async (req, res) => {
+  try {
+    if (!req.user.department) {
+      return res.status(403).json({
+        success: false,
+        message: "Your account is not linked to a department",
+      });
+    }
+
+    const {
+      status,
+      search,
+      sortBy = "createdAt",
+      order = "desc",
+      page = 1,
+      limit = 10,
+    } = req.query;
+
+    const filter = { department: req.user.department };
+    if (status) filter.status = status;
+    if (search) {
+      filter.$or = [
+        { title: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    const sortField = ALLOWED_SORT_FIELDS.includes(sortBy) ? sortBy : "createdAt";
+    const sortOrder = order === "asc" ? 1 : -1;
+
+    const pageNum = Math.max(1, Number(page) || 1);
+    const limitNum = Math.max(1, Number(limit) || 10);
+    const skip = (pageNum - 1) * limitNum;
+
+    const [complaints, total] = await Promise.all([
+      Complaint.find(filter)
+        .populate("category", "name")
+        .populate("reporter", "name")
+        .sort({ [sortField]: sortOrder })
+        .skip(skip)
+        .limit(limitNum),
+      Complaint.countDocuments(filter),
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      data: complaints,
+      message: "Assigned complaints fetched",
+      meta: { page: pageNum, limit: limitNum, total },
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong",
+      error: err.message,
+    });
+  }
+};
+
+export const updateComplaintStatus = async (req, res) => {
+  try {
+    const { status, note } = req.body;
+
+    const allowedStatuses = ["in_progress", "resolved", "rejected"];
+    if (!status || !allowedStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: `status must be one of: ${allowedStatuses.join(", ")}`,
+      });
+    }
+
+    const complaint = await Complaint.findById(req.params.id);
+    if (!complaint) {
+      return res.status(404).json({
+        success: false,
+        message: "Complaint not found",
+      });
+    }
+
+    if (
+      req.user.role === "department_user" &&
+      (!complaint.department ||
+        !req.user.department ||
+        complaint.department.toString() !== req.user.department.toString())
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "This complaint is not assigned to your department",
+      });
+    }
+
+    const evidenceUrls = (req.files || []).map((f) => f.path);
+
+    const update = { $set: { status } };
+    if (evidenceUrls.length > 0) {
+      update.$push = { evidenceImages: { $each: evidenceUrls } };
+    }
+
+    const updated = await Complaint.findByIdAndUpdate(req.params.id, update, {
+      new: true,
+      runValidators: true,
+    })
+      .populate("category", "name")
+      .populate("department", "name")
+      .populate("reporter", "name email");
+
+    await ComplaintUpdate.create({
+      complaint: updated._id,
+      status,
+      note: note || "",
+      updatedBy: req.user._id,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: updated,
+      message: "Complaint status updated",
     });
   } catch (err) {
     return res.status(500).json({

@@ -11,3 +11,9 @@ export const getComplaintById = (id) => api.get(`/complaints/${id}`);
 export const getAllComplaints = (params) => api.get("/complaints", { params });
 export const assignDepartment = (id, department) =>
   api.patch(`/complaints/${id}/assign`, { department });
+export const getAssignedComplaints = (params) => api.get("/complaints/assigned", { params });
+
+export const updateComplaintStatus = (id, formData) =>
+  api.patch(`/complaints/${id}/status`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });

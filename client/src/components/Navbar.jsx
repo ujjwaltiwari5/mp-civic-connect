@@ -24,6 +24,11 @@ export default function Navbar() {
                 <Link to="/admin/categories" className="text-gray-600 hover:text-teal-700">Categories</Link>
               </>
             )}
+            {user?.role === "department_user" && (
+           <Link to="/department/complaints" className="text-gray-600 hover:text-teal-700">
+         My Assigned Complaints
+          </Link>
+           )}
             <Link to="/complaints/new" className="text-gray-600 hover:text-teal-700">New Complaint</Link>
             <Link to="/complaints/mine" className="text-gray-600 hover:text-teal-700">My Complaints</Link>
             <span className="text-gray-600">Hi, {user.name}</span>
