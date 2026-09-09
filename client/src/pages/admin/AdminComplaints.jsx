@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../services/api";
 import { getAllComplaints, assignDepartment } from "../../services/complaints";
+import PriorityBadge from "../../components/PriorityBadge";
 
 const STATUS_OPTIONS = ["submitted", "assigned", "in_progress", "resolved", "rejected"];
 
@@ -120,6 +121,8 @@ export default function AdminComplaints() {
           <option value="createdAt_desc">Newest first</option>
           <option value="createdAt_asc">Oldest first</option>
           <option value="status_asc">Status (A-Z)</option>
+          <option value="priorityScore_desc">Priority (High → Low)</option>
+          <option value="priorityScore_asc">Priority (Low → High)</option>
         </select>
       </div>
 
@@ -133,6 +136,7 @@ export default function AdminComplaints() {
               <tr>
                 <th className="text-left px-3 py-2">Title</th>
                 <th className="text-left px-3 py-2">Category</th>
+                <th className="text-left px-3 py-2">Priority</th>
                 <th className="text-left px-3 py-2">Department</th>
                 <th className="text-left px-3 py-2">Status</th>
                 <th className="text-left px-3 py-2">Reporter</th>
@@ -143,7 +147,7 @@ export default function AdminComplaints() {
             <tbody>
               {complaints.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="text-center py-4 text-gray-500">
+                  <td colSpan={8} className="text-center py-4 text-gray-500">
                     No complaints found.
                   </td>
                 </tr>
@@ -152,6 +156,9 @@ export default function AdminComplaints() {
                 <tr key={c._id} className="border-t">
                   <td className="px-3 py-2">{c.title}</td>
                   <td className="px-3 py-2">{c.category?.name}</td>
+                  <td className="px-3 py-2">
+                    <PriorityBadge score={c.priorityScore} />
+                  </td>
                   <td className="px-3 py-2">
                     <select
                       value={c.department?._id || ""}

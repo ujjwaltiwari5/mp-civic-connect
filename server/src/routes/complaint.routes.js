@@ -6,6 +6,8 @@ import {
   createComplaint,
   getMyComplaints,
   getComplaintById,
+  recalculatePriority,
+  recalculateAllPriorities,
   getAllComplaints,
   assignDepartment,
   getAssignedComplaints,
@@ -13,7 +15,8 @@ import {
 } from "../controllers/complaint.controller.js";
 
 const router = express.Router();
-
+router.post("/recalculate-priorities", protect, authorize("admin"), recalculateAllPriorities);
+router.patch("/:id/recalculate-priority", protect, authorize("admin"), recalculatePriority);
 router.post("/", protect, upload.array("images", 5), createComplaint);
 router.get("/mine", protect, getMyComplaints);
 router.get("/assigned", protect, authorize("department_user"), getAssignedComplaints);

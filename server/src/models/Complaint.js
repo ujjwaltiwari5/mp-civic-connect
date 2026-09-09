@@ -54,14 +54,44 @@ const complaintSchema = new mongoose.Schema(
       enum: ["submitted", "assigned", "in_progress", "resolved", "rejected"],
       default: "submitted",
     },
-        evidenceImages: {
+    evidenceImages: {
       type: [String],
       default: [],
+    },
+    // ---- Phase 11: priority scoring ----
+    severity: {
+      type: String,
+      enum: ["low", "medium", "high"],
+      default: null, // Phase 11 se pehle ki complaints ke liye null rahega
+    },
+    ward: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Ward",
+      default: null, // Phase 11 se pehle ki complaints ke liye null rahega
+    },
+    duplicateCount: {
+      type: Number,
+      default: 0, // Phase 12 (duplicate detection) tak hamesha 0
+      min: 0,
+    },
+    priorityScore: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100,
+    },
+    priorityBreakdown: {
+      severity: { type: Number, default: 0 },
+      duplicateCount: { type: Number, default: 0 },
+      categoryWeight: { type: Number, default: 0 },
+      locationImportance: { type: Number, default: 0 },
+      ageFactor: { type: Number, default: 0 },
     },
   },
   { timestamps: true }
 );
 complaintSchema.index({ reporter: 1, createdAt: -1 });
 complaintSchema.index({ location: "2dsphere" });
+complaintSchema.index({ priorityScore: -1 });
 
 export default mongoose.model("Complaint", complaintSchema);

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getAssignedComplaints } from "../../services/complaints";
+import PriorityBadge from "../../components/PriorityBadge";
 
 const STATUS_OPTIONS = ["assigned", "in_progress", "resolved", "rejected"];
 
@@ -59,6 +60,20 @@ export default function DepartmentComplaints() {
             <option key={s} value={s}>{s}</option>
           ))}
         </select>
+        <select
+          value={`${filters.sortBy}_${filters.order}`}
+          onChange={(e) => {
+            const [sortBy, order] = e.target.value.split("_");
+            setFilters((f) => ({ ...f, sortBy, order, page: 1 }));
+          }}
+          className="border rounded px-2 py-1.5 text-sm"
+        >
+          <option value="createdAt_desc">Newest first</option>
+          <option value="createdAt_asc">Oldest first</option>
+          <option value="status_asc">Status (A-Z)</option>
+          <option value="priorityScore_desc">Priority (High → Low)</option>
+          <option value="priorityScore_asc">Priority (Low → High)</option>
+        </select>
       </div>
 
       {loading && <p className="text-sm text-gray-500">Loading...</p>}
@@ -71,6 +86,7 @@ export default function DepartmentComplaints() {
               <tr>
                 <th className="text-left px-3 py-2">Title</th>
                 <th className="text-left px-3 py-2">Category</th>
+                <th className="text-left px-3 py-2">Priority</th>
                 <th className="text-left px-3 py-2">Status</th>
                 <th className="text-left px-3 py-2">Reporter</th>
                 <th className="text-left px-3 py-2">Date</th>
@@ -80,7 +96,7 @@ export default function DepartmentComplaints() {
             <tbody>
               {complaints.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="text-center py-4 text-gray-500">
+                  <td colSpan={7} className="text-center py-4 text-gray-500">
                     No complaints assigned yet.
                   </td>
                 </tr>
@@ -89,6 +105,9 @@ export default function DepartmentComplaints() {
                 <tr key={c._id} className="border-t">
                   <td className="px-3 py-2">{c.title}</td>
                   <td className="px-3 py-2">{c.category?.name}</td>
+                  <td className="px-3 py-2">
+                    <PriorityBadge score={c.priorityScore} />
+                  </td>
                   <td className="px-3 py-2">
                     <span className="text-xs px-2 py-0.5 rounded bg-gray-100">{c.status}</span>
                   </td>

@@ -3,6 +3,8 @@ import { useParams, Link } from "react-router-dom";
 import { MapContainer, TileLayer, Marker } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { getComplaintById } from "../services/complaints";
+import { useAuth } from "../context/AuthContext";
+import PriorityBadge from "../components/PriorityBadge";
 
 const statusLabels = {
   submitted: "Submitted",
@@ -12,8 +14,50 @@ const statusLabels = {
   rejected: "Rejected",
 };
 
+const BREAKDOWN_LABELS = {
+  severity: "Severity",
+  duplicateCount: "Duplicate reports",
+  categoryWeight: "Category",
+  locationImportance: "Ward importance",
+  ageFactor: "Age (unresolved time)",
+};
+
+function PriorityBreakdown({ score, breakdown }) {
+  if (!breakdown) return null;
+  const maxPart = Math.max(1, ...Object.values(breakdown));
+
+  return (
+    <div className="border rounded p-3 mt-3 bg-gray-50">
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-sm font-semibold text-gray-700">Priority Score</h3>
+        <PriorityBadge score={score} />
+      </div>
+      <div className="space-y-1.5">
+        {Object.entries(breakdown).map(([key, value]) => (
+          <div key={key} className="flex items-center gap-2">
+            <span className="text-xs text-gray-600 w-36 shrink-0">
+              {BREAKDOWN_LABELS[key] || key}
+            </span>
+            <div className="flex-1 h-2 bg-gray-200 rounded overflow-hidden">
+              <div
+                className="h-full bg-teal-600"
+                style={{ width: `${Math.min(100, (value / maxPart) * 100)}%` }}
+              />
+            </div>
+            <span className="text-xs text-gray-500 w-10 text-right">{value.toFixed(1)}</span>
+          </div>
+        ))}
+      </div>
+      <p className="text-xs text-gray-400 mt-2">
+        Each factor's contribution to the total priority score (out of 100).
+      </p>
+    </div>
+  );
+}
+
 export default function ComplaintDetail() {
   const { id } = useParams();
+  const { user } = useAuth();
   const [complaint, setComplaint] = useState(null);
   const [timeline, setTimeline] = useState([]);
   const [error, setError] = useState("");
@@ -45,6 +89,7 @@ export default function ComplaintDetail() {
   }
 
   const coords = complaint.location?.coordinates;
+  const canSeePriority = user?.role === "admin" || user?.role === "department_user";
 
   return (
     <div className="max-w-2xl mx-auto mt-8 p-4">
@@ -91,6 +136,10 @@ export default function ComplaintDetail() {
             <Marker position={[coords[1], coords[0]]} />
           </MapContainer>
         </div>
+      )}
+
+      {canSeePriority && (
+        <PriorityBreakdown score={complaint.priorityScore} breakdown={complaint.priorityBreakdown} />
       )}
 
       <h2 className="text-lg font-semibold mt-6 mb-2">Status Timeline</h2>
