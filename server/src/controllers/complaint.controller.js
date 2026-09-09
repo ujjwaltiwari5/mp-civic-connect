@@ -614,3 +614,74 @@ export const reviewDuplicate = async (req, res) => {
     });
   }
 };
+export const verifyComplaintResolution = async (req, res) => {
+  try {
+    const { action, note } = req.body;
+    if (!["confirm", "reject"].includes(action)) {
+      return res.status(400).json({
+        success: false,
+        message: "action must be 'confirm' or 'reject'",
+      });
+    }
+
+    const complaint = await Complaint.findById(req.params.id);
+    if (!complaint) {
+      return res.status(404).json({ success: false, message: "Complaint not found" });
+    }
+
+    if (complaint.reporter.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "Only the citizen who filed this complaint can verify its resolution",
+      });
+    }
+
+    if (complaint.status !== "resolved") {
+      return res.status(400).json({
+        success: false,
+        message: "This complaint is not currently marked resolved, so it can't be verified",
+      });
+    }
+
+    if (action === "reject" && !note?.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Please explain why you're reopening this complaint",
+      });
+    }
+
+    const newStatus = action === "confirm" ? "closed" : "in_progress";
+
+    const updated = await Complaint.findByIdAndUpdate(
+      req.params.id,
+      { status: newStatus },
+      { new: true, runValidators: true }
+    )
+      .populate("category", "name")
+      .populate("department", "name");
+
+    await ComplaintUpdate.create({
+      complaint: updated._id,
+      status: newStatus,
+      note:
+        action === "confirm"
+          ? note?.trim()
+            ? `Citizen confirmed the resolution: ${note.trim()}`
+            : "Citizen confirmed the resolution"
+          : `Citizen reopened the complaint: ${note.trim()}`,
+      updatedBy: req.user._id,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: updated,
+      message: action === "confirm" ? "Resolution confirmed, complaint closed" : "Complaint reopened",
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong",
+      error: err.message,
+    });
+  }
+};

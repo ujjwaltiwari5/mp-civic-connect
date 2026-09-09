@@ -14,6 +14,7 @@ import {
   updateComplaintStatus,
   getDuplicateReviewQueue,
   reviewDuplicate,
+  verifyComplaintResolution,
 } from "../controllers/complaint.controller.js";
 
 const router = express.Router();
@@ -27,6 +28,7 @@ router.get("/", protect, authorize("admin"), getAllComplaints);
 router.get("/:id", protect, getComplaintById);
 router.patch("/:id/assign", protect, authorize("admin"), assignDepartment);
 router.patch("/:id/duplicate-review", protect, authorize("admin"), reviewDuplicate);
+router.post("/:id/verify", protect, verifyComplaintResolution);
 router.patch(
   "/:id/status",
   protect,

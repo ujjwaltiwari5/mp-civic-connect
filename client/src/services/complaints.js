@@ -20,3 +20,4 @@ export const updateComplaintStatus = (id, formData) =>
   export const getDuplicateReviewQueue = () => api.get("/complaints/duplicates");
 export const reviewDuplicate = (id, payload) =>
   api.patch(`/complaints/${id}/duplicate-review`, payload);
+export const verifyResolution = (id, payload) => api.post(`/complaints/${id}/verify`, payload);

@@ -48,6 +48,14 @@ export default function MyComplaints() {
                   <StatusBadge status={c.status} />
                 </div>
                 <p className="text-sm text-teal-700 font-medium mt-1">{c.category?.name}</p>
+                {c.status === "resolved" && (
+                  <Link
+                    to={`/complaints/${c._id}`}
+                    className="block mt-2 bg-amber-50 border border-amber-200 rounded-md px-3 py-1.5 text-xs text-amber-700 font-medium hover:bg-amber-100"
+                  >
+                    Resolved mark hua hai — confirm ya reopen karne ke liye yahan click karo →
+                  </Link>
+                )}
                 <p className="text-sm text-slate-600 mt-1">{c.description}</p>
                 {c.address && <p className="text-xs text-slate-400 mt-1">{c.address}</p>}
                 {c.images && c.images.length > 0 && (

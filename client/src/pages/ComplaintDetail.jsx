@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { MapContainer, TileLayer, Marker } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import { getComplaintById } from "../services/complaints";
+import { getComplaintById, verifyResolution } from "../services/complaints";
 import { useAuth } from "../context/AuthContext";
 import PriorityBadge from "../components/PriorityBadge";
 import StatusBadge, { STATUS_META } from "../components/StatusBadge";
@@ -48,6 +48,69 @@ function PriorityBreakdown({ score, breakdown }) {
   );
 }
 
+function VerifyResolutionCard({ complaintId, onVerified }) {
+  const [note, setNote] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleVerify = async (action) => {
+    if (action === "reject" && !note.trim()) {
+      setError("Please tell us why you're reopening this complaint.");
+      return;
+    }
+    setSubmitting(true);
+    setError("");
+    try {
+      await verifyResolution(complaintId, { action, note: note.trim() });
+      setNote("");
+      onVerified();
+    } catch (err) {
+      setError(err.response?.data?.message || "Something went wrong, try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 mt-4">
+      <p className="text-sm font-semibold text-amber-800 mb-1">
+        Department ne ise resolved mark kiya hai
+      </p>
+      <p className="text-xs text-amber-700 mb-3">
+        Kya ye issue waqai fix ho gaya? Confirm karo, ya reason bata kar dobara reopen karo.
+      </p>
+      <textarea
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
+        rows={2}
+        placeholder="Optional note (reopen karte waqt zaroori hai)"
+        className="w-full rounded-md border border-amber-300 px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-amber-500"
+      />
+      {error && (
+        <p className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-md px-2.5 py-1.5 mb-3">
+          {error}
+        </p>
+      )}
+      <div className="flex gap-3">
+        <button
+          disabled={submitting}
+          onClick={() => handleVerify("confirm")}
+          className="flex-1 bg-teal-700 text-white rounded-md py-2 text-sm font-semibold hover:bg-teal-800 disabled:opacity-60"
+        >
+          Haan, Fixed Hai
+        </button>
+        <button
+          disabled={submitting}
+          onClick={() => handleVerify("reject")}
+          className="flex-1 bg-white text-amber-800 border border-amber-300 rounded-md py-2 text-sm font-semibold hover:bg-amber-100 disabled:opacity-60"
+        >
+          Nahi, Reopen Karo
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function ComplaintDetail() {
   const { id } = useParams();
   const { user } = useAuth();
@@ -55,7 +118,7 @@ export default function ComplaintDetail() {
   const [timeline, setTimeline] = useState([]);
   const [error, setError] = useState("");
 
-  useEffect(() => {
+  const loadComplaint = () => {
     getComplaintById(id)
       .then((res) => {
         setComplaint(res.data.data.complaint);
@@ -64,6 +127,10 @@ export default function ComplaintDetail() {
       .catch((err) => {
         setError(err.response?.data?.message || "Could not load complaint");
       });
+  };
+
+  useEffect(() => {
+    loadComplaint();
   }, [id]);
 
   if (error) {
@@ -89,6 +156,8 @@ export default function ComplaintDetail() {
 
   const coords = complaint.location?.coordinates;
   const canSeePriority = user?.role === "admin" || user?.role === "department_user";
+  const isOwner = user?.id === complaint.reporter;
+  const needsVerification = isOwner && complaint.status === "resolved";
 
   return (
     <div className="min-h-[calc(100vh-57px)] bg-slate-50 px-4 py-10">
@@ -137,6 +206,10 @@ export default function ComplaintDetail() {
             </div>
           )}
         </div>
+
+        {needsVerification && (
+          <VerifyResolutionCard complaintId={complaint._id} onVerified={loadComplaint} />
+        )}
 
         {canSeePriority && (
           <PriorityBreakdown score={complaint.priorityScore} breakdown={complaint.priorityBreakdown} />

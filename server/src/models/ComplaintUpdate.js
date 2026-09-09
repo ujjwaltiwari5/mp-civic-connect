@@ -9,7 +9,7 @@ const complaintUpdateSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["submitted", "assigned", "in_progress", "resolved", "rejected"],
+      enum: ["submitted", "assigned", "in_progress", "resolved", "rejected","closed"],
       required: true,
     },
     note: {

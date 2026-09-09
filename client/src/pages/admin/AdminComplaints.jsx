@@ -5,7 +5,7 @@ import { getAllComplaints, assignDepartment } from "../../services/complaints";
 import PriorityBadge from "../../components/PriorityBadge";
 import StatusBadge from "../../components/StatusBadge";
 
-const STATUS_OPTIONS = ["submitted", "assigned", "in_progress", "resolved", "rejected"];
+const STATUS_OPTIONS = ["submitted", "assigned", "in_progress", "resolved", "rejected","closed"];
 
 export default function AdminComplaints() {
   const [complaints, setComplaints] = useState([]);
