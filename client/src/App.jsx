@@ -15,6 +15,7 @@ import MyComplaints from "./pages/MyComplaints";
 import ProtectedRoute from "./components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 import ComplaintDetail from "./pages/ComplaintDetail";
+import DuplicateReview from "./pages/admin/DuplicateReview";
 
 function App() {
   return (
@@ -64,14 +65,22 @@ function App() {
     </ProtectedRoute>
   }
 />
-        <Route
-          path="/complaints/new"
-          element={
-            <ProtectedRoute>
-              <NewComplaint />
-            </ProtectedRoute>
-          }
-        />
+<Route
+  path="/admin/duplicates"
+  element={
+    <ProtectedRoute roles={["admin"]}>
+      <DuplicateReview />
+    </ProtectedRoute>
+  }
+/>
+   <Route
+    path="/complaints/new"
+    element={
+      <ProtectedRoute>
+      <NewComplaint />
+      </ProtectedRoute>
+        }
+   />
         <Route
           path="/complaints/mine"
           element={

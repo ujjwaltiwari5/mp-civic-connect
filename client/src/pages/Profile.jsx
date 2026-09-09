@@ -27,11 +27,18 @@ export default function Profile() {
     }
   };
 
+  const initial = user?.name?.trim()?.[0]?.toUpperCase() || "?";
+
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-10 flex justify-center">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h1 className="text-xl font-bold text-gray-900 mb-1">My Profile</h1>
-        <p className="text-sm text-gray-500 mb-6">Your account details</p>
+    <div className="min-h-[calc(100vh-57px)] bg-gradient-to-br from-slate-50 to-teal-50 px-4 py-10 flex justify-center">
+      <div className="w-full max-w-md bg-white rounded-xl shadow-md border border-slate-200 p-6">
+        <div className="flex justify-center mb-4">
+          <span className="w-14 h-14 rounded-full bg-teal-50 text-teal-700 border border-teal-200 flex items-center justify-center font-bold text-lg">
+            {initial}
+          </span>
+        </div>
+        <h1 className="text-xl font-bold text-gray-900 mb-1 text-center">My Profile</h1>
+        <p className="text-sm text-gray-500 mb-6 text-center">Your account details</p>
 
         {success && (
           <div className="mb-4 text-sm text-green-700 bg-green-50 border border-green-200 rounded-md px-3 py-2">

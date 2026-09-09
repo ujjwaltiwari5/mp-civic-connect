@@ -17,3 +17,6 @@ export const updateComplaintStatus = (id, formData) =>
   api.patch(`/complaints/${id}/status`, formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
+  export const getDuplicateReviewQueue = () => api.get("/complaints/duplicates");
+export const reviewDuplicate = (id, payload) =>
+  api.patch(`/complaints/${id}/duplicate-review`, payload);

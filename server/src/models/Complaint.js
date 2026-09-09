@@ -74,6 +74,28 @@ const complaintSchema = new mongoose.Schema(
       default: 0, // Phase 12 (duplicate detection) tak hamesha 0
       min: 0,
     },
+        duplicateOf: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Complaint",
+      default: null, // set hota hai jab admin confirm karta hai ki ye duplicate hai
+    },
+    duplicateReviewStatus: {
+      type: String,
+      enum: ["none", "pending", "confirmed", "dismissed"],
+      default: "none",
+    },
+    possibleDuplicates: {
+      type: [
+        {
+          complaint: { type: mongoose.Schema.Types.ObjectId, ref: "Complaint" },
+          score: { type: Number },
+          textScore: { type: Number },
+          proximityScore: { type: Number },
+          distanceMeters: { type: Number },
+        },
+      ],
+      default: [],
+    },
     priorityScore: {
       type: Number,
       default: 0,

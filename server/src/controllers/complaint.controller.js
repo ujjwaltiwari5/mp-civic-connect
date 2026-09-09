@@ -6,6 +6,7 @@ import { reverseGeocode } from "../utils/geocode.js";
 import Department from "../models/Department.js";
 import Ward from "../models/Ward.js";
 import { calculatePriorityScore } from "../services/priorityScoring.js";
+import { findPossibleDuplicates } from "../services/duplicateDetection.js";
 const createComplaintSchema = z.object({
   title: z.string().trim().min(3, "Title too short").max(120),
   description: z.string().trim().min(10, "Description too short").max(1000),
@@ -81,10 +82,26 @@ export const createComplaint = async (req, res) => {
       note: "Complaint submitted",
       updatedBy: req.user._id,
     });
+        let responseComplaint = complaint;
+    const matches = await findPossibleDuplicates({
+      complaintId: complaint._id,
+      title,
+      description,
+      category,
+      location: complaint.location,
+      createdAt: complaint.createdAt,
+    });
 
-    return res.status(201).json({
+    if (matches.length > 0) {
+      responseComplaint = await Complaint.findByIdAndUpdate(
+        complaint._id,
+        { possibleDuplicates: matches, duplicateReviewStatus: "pending" },
+        { new: true, runValidators: true }
+      ).populate("possibleDuplicates.complaint", "title status createdAt");
+    }
+        return res.status(201).json({
       success: true,
-      data: complaint,
+      data: responseComplaint,
       message: "Complaint submitted successfully",
     });
   } catch (err) {
@@ -470,6 +487,125 @@ export const recalculateAllPriorities = async (req, res) => {
       success: true,
       message: `Recalculated priority for ${bulkOps.length} complaint(s)`,
     });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong",
+      error: err.message,
+    });
+  }
+};
+export const getDuplicateReviewQueue = async (req, res) => {
+  try {
+    const complaints = await Complaint.find({ duplicateReviewStatus: "pending" })
+      .populate("category", "name")
+      .populate("reporter", "name email")
+      .populate("possibleDuplicates.complaint", "title description status createdAt reporter")
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      data: complaints,
+      message: "Duplicate review queue fetched",
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong",
+      error: err.message,
+    });
+  }
+};
+
+export const reviewDuplicate = async (req, res) => {
+  try {
+    const { action, originalComplaintId } = req.body;
+    if (!["confirm", "dismiss"].includes(action)) {
+      return res.status(400).json({
+        success: false,
+        message: "action must be 'confirm' or 'dismiss'",
+      });
+    }
+
+    const complaint = await Complaint.findById(req.params.id);
+    if (!complaint) {
+      return res.status(404).json({ success: false, message: "Complaint not found" });
+    }
+    if (complaint.duplicateReviewStatus !== "pending") {
+      return res.status(400).json({
+        success: false,
+        message: "This complaint is not pending duplicate review",
+      });
+    }
+
+    if (action === "dismiss") {
+      const updated = await Complaint.findByIdAndUpdate(
+        req.params.id,
+        { duplicateReviewStatus: "dismissed" },
+        { new: true, runValidators: true }
+      );
+      await ComplaintUpdate.create({
+        complaint: updated._id,
+        status: updated.status,
+        note: "Duplicate flag dismissed by admin",
+        updatedBy: req.user._id,
+      });
+      return res.status(200).json({ success: true, data: updated, message: "Duplicate dismissed" });
+    }
+
+    // action === "confirm"
+    const isValidMatch = complaint.possibleDuplicates.some(
+      (m) => m.complaint.toString() === originalComplaintId
+    );
+    if (!originalComplaintId || !isValidMatch) {
+      return res.status(400).json({
+        success: false,
+        message: "originalComplaintId must be one of the detected matches",
+      });
+    }
+
+    const original = await Complaint.findById(originalComplaintId)
+      .populate("category", "priorityWeight")
+      .populate("ward", "importanceWeight");
+    if (!original) {
+      return res.status(404).json({ success: false, message: "Original complaint not found" });
+    }
+
+    const newDuplicateCount = (original.duplicateCount || 0) + 1;
+    const { priorityScore, priorityBreakdown } = calculatePriorityScore({
+      severity: original.severity,
+      duplicateCount: newDuplicateCount,
+      categoryWeight: original.category?.priorityWeight,
+      locationImportance: original.ward?.importanceWeight,
+      createdAt: original.createdAt,
+    });
+
+    await Complaint.findByIdAndUpdate(originalComplaintId, {
+      duplicateCount: newDuplicateCount,
+      priorityScore,
+      priorityBreakdown,
+    });
+
+    const updated = await Complaint.findByIdAndUpdate(
+      req.params.id,
+      { duplicateOf: originalComplaintId, duplicateReviewStatus: "confirmed" },
+      { new: true, runValidators: true }
+    );
+
+    await ComplaintUpdate.create({
+      complaint: originalComplaintId,
+      status: original.status,
+      note: `Duplicate confirmed: complaint ${updated._id} merged into this one`,
+      updatedBy: req.user._id,
+    });
+    await ComplaintUpdate.create({
+      complaint: updated._id,
+      status: updated.status,
+      note: `Marked as duplicate of complaint ${originalComplaintId}`,
+      updatedBy: req.user._id,
+    });
+
+    return res.status(200).json({ success: true, data: updated, message: "Duplicate confirmed and merged" });
   } catch (err) {
     return res.status(500).json({
       success: false,
