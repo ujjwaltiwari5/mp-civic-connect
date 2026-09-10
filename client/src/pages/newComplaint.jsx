@@ -102,10 +102,10 @@ export default function NewComplaint() {
             <div className="space-y-4">
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
                 <p className="text-sm font-semibold text-amber-800 mb-1">
-                  Complaint submit ho gaya — lekin ye pehle se report ho chuka ho sakta hai
+                  Complaint submitted — but it may already have been reported
                 </p>
                 <p className="text-xs text-amber-700 mb-3">
-                  Hamare system ko {duplicateWarning.length} milte-julte complaint(s) isi area me mile hain.
+                  Our system found {duplicateWarning.length} similar complaint(s) in this area.
                 </p>
                 <div className="space-y-2">
                   {duplicateWarning.map((m) => (
@@ -122,7 +122,7 @@ export default function NewComplaint() {
                 onClick={() => navigate("/complaints/mine")}
                 className="w-full bg-teal-700 text-white rounded-md py-2.5 text-sm font-semibold hover:bg-teal-800 transition"
               >
-                Theek hai, My Complaints dekhein
+                Okay, View My Complaints
               </button>
             </div>
           ) : (

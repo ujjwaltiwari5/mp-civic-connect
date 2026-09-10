@@ -8,6 +8,7 @@ import categoryRoutes from "./routes/category.routes.js";
 import complaintRoutes from "./routes/complaint.routes.js";
 import wardRoutes from "./routes/ward.routes.js";
 import analyticsRoutes from "./routes/analytics.routes.js";
+import notificationRoutes from "./routes/notification.routes.js";
 
 import { notFound, errorHandler } from "./middleware/errorHandler.js";
 
@@ -29,6 +30,7 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/complaints", complaintRoutes);
 app.use("/api/wards", wardRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/notifications", notificationRoutes);
 app.use(notFound);
 app.use(errorHandler);
 

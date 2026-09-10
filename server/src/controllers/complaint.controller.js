@@ -7,6 +7,7 @@ import Department from "../models/Department.js";
 import Ward from "../models/Ward.js";
 import { calculatePriorityScore } from "../services/priorityScoring.js";
 import { findPossibleDuplicates } from "../services/duplicateDetection.js";
+import { notifyUser, notifyDepartment } from "../services/notification.service.js";
 const createComplaintSchema = z.object({
   title: z.string().trim().min(3, "Title too short").max(120),
   description: z.string().trim().min(10, "Description too short").max(1000),
@@ -275,6 +276,20 @@ export const assignDepartment = async (req, res) => {
       updatedBy: req.user._id,
     });
 
+    await notifyUser({
+      user: complaint.reporter._id,
+      complaint: complaint._id,
+      type: "assignment",
+      message: `Your complaint "${complaint.title}" has been assigned to ${departmentExists.name}.`,
+    });
+
+    await notifyDepartment({
+      department: departmentExists._id,
+      complaint: complaint._id,
+      type: "assignment",
+      message: `New complaint assigned to your department: "${complaint.title}".`,
+    });
+
     return res.status(200).json({
       success: true,
       data: complaint,
@@ -399,6 +414,13 @@ export const updateComplaintStatus = async (req, res) => {
       status,
       note: note || "",
       updatedBy: req.user._id,
+    });
+
+    await notifyUser({
+      user: updated.reporter._id,
+      complaint: updated._id,
+      type: "status_update",
+      message: `Your complaint "${updated.title}" status was updated to "${status.replace("_", " ")}".`,
     });
 
     return res.status(200).json({
@@ -671,6 +693,18 @@ export const verifyComplaintResolution = async (req, res) => {
           : `Citizen reopened the complaint: ${note.trim()}`,
       updatedBy: req.user._id,
     });
+
+    if (updated.department) {
+      await notifyDepartment({
+        department: updated.department._id,
+        complaint: updated._id,
+        type: action === "confirm" ? "verification_confirmed" : "verification_rejected",
+        message:
+          action === "confirm"
+            ? `Citizen confirmed the fix for "${updated.title}" — marked closed.`
+            : `Citizen reopened "${updated.title}": ${note.trim()}`,
+      });
+    }
 
     return res.status(200).json({
       success: true,

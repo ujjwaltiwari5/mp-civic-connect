@@ -39,7 +39,7 @@ export default function AdminComplaints() {
         setComplaints(res.data.data);
         setMeta(res.data.meta);
       })
-      .catch(() => setError("Complaints load nahi ho payi."))
+      .catch(() => setError("Failed to load complaints."))
       .finally(() => setLoading(false));
   }, [filters]);
 
@@ -63,7 +63,7 @@ export default function AdminComplaints() {
         )
       );
     } catch {
-      alert("Assign fail ho gaya, dobara try karo.");
+      alert("Assign fail, please try again.");
     }
   };
 

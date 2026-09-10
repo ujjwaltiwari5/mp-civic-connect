@@ -1,5 +1,6 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import NotificationBell from "./NotificationBell";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -48,6 +49,7 @@ export default function Navbar() {
               )}
               <NavLink to="/complaints/new" className={linkClass}>New Complaint</NavLink>
               <NavLink to="/complaints/mine" className={linkClass}>My Complaints</NavLink>
+              <NotificationBell />
 
               <Link
                 to="/profile"

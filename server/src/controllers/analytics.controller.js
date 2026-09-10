@@ -10,9 +10,6 @@ const buildScopeFilter = (req) => {
   return {};
 };
 
-// Average hours between a complaint's createdAt and the first time it was
-// marked "resolved" (from the ComplaintUpdate timeline) — optionally scoped
-// to one department.
 const getAvgResolutionHours = async (scope) => {
   const rows = await ComplaintUpdate.aggregate([
     { $match: { status: "resolved" } },

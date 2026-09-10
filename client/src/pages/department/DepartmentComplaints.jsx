@@ -29,7 +29,7 @@ export default function DepartmentComplaints() {
         setComplaints(res.data.data);
         setMeta(res.data.meta);
       })
-      .catch(() => setError("Complaints load nahi ho payi."))
+      .catch(() => setError("Failed to load complaints."))
       .finally(() => setLoading(false));
   }, [filters]);
 

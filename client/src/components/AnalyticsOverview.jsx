@@ -61,7 +61,7 @@ export default function AnalyticsOverview() {
         setByDepartment(departmentRes.data.data);
         setResolutionTime(resTimeRes.data.data);
       })
-      .catch(() => setError("Analytics load nahi ho payi."))
+      .catch(() => setError("Failed to load analytics"))
       .finally(() => setLoading(false));
   }, []);
 
@@ -85,7 +85,7 @@ export default function AnalyticsOverview() {
         <StatTile label="Total Complaints" value={overview.totalComplaints} />
         <StatTile label="Pending" value={pending} accent="text-amber-600" />
         <StatTile label="Resolved + Closed" value={resolvedClosed} accent="text-green-600" />
-        <StatTile label="Avg Resolution Time" value={`${avgResolutionDays} din`} accent="text-teal-700" />
+        <StatTile label="Avg Resolution Time" value={`${avgResolutionDays} days`} accent="text-teal-700" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -102,21 +102,21 @@ export default function AnalyticsOverview() {
         </ChartCard>
 
         <ChartCard title="Complaints by Category">
-          {byCategory.length === 0 && <p className="text-xs text-slate-400">Koi data nahi hai.</p>}
+          {byCategory.length === 0 && <p className="text-xs text-slate-400">No Data Available.</p>}
           {byCategory.map((c) => (
             <BarRow key={c.categoryId} label={c.name} count={c.count} max={categoryMax} />
           ))}
         </ChartCard>
 
         <ChartCard title="Complaints by Department">
-          {byDepartment.length === 0 && <p className="text-xs text-slate-400">Koi data nahi hai.</p>}
+          {byDepartment.length === 0 && <p className="text-xs text-slate-400">No Data Available.</p>}
           {byDepartment.map((d) => (
             <BarRow key={d.departmentId} label={d.name} count={d.count} max={departmentMax} colorClass="bg-blue-600" />
           ))}
         </ChartCard>
 
-        <ChartCard title="Avg Resolution Time by Category (ghante)">
-          {resolutionTime.byCategory.length === 0 && <p className="text-xs text-slate-400">Koi data nahi hai.</p>}
+        <ChartCard title="Avg Resolution Time by Category (hours)">
+          {resolutionTime.byCategory.length === 0 && <p className="text-xs text-slate-400">No Data Available.</p>}
           {resolutionTime.byCategory.map((c) => (
             <BarRow
               key={c.categoryId}

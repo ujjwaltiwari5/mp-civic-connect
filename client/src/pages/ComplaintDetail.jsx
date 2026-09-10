@@ -74,16 +74,16 @@ function VerifyResolutionCard({ complaintId, onVerified }) {
   return (
     <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 mt-4">
       <p className="text-sm font-semibold text-amber-800 mb-1">
-        Department ne ise resolved mark kiya hai
+        Department has marked this as resolved.
       </p>
       <p className="text-xs text-amber-700 mb-3">
-        Kya ye issue waqai fix ho gaya? Confirm karo, ya reason bata kar dobara reopen karo.
+        Has this issue actually been fixed? Confirm it, or reopen it with a reason.
       </p>
       <textarea
         value={note}
         onChange={(e) => setNote(e.target.value)}
         rows={2}
-        placeholder="Optional note (reopen karte waqt zaroori hai)"
+        placeholder="Optional note (Required when reopening)"
         className="w-full rounded-md border border-amber-300 px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-amber-500"
       />
       {error && (
@@ -97,14 +97,14 @@ function VerifyResolutionCard({ complaintId, onVerified }) {
           onClick={() => handleVerify("confirm")}
           className="flex-1 bg-teal-700 text-white rounded-md py-2 text-sm font-semibold hover:bg-teal-800 disabled:opacity-60"
         >
-          Haan, Fixed Hai
+          Yes, It's Fixed
         </button>
         <button
           disabled={submitting}
           onClick={() => handleVerify("reject")}
           className="flex-1 bg-white text-amber-800 border border-amber-300 rounded-md py-2 text-sm font-semibold hover:bg-amber-100 disabled:opacity-60"
         >
-          Nahi, Reopen Karo
+          No, Reopen It
         </button>
       </div>
     </div>

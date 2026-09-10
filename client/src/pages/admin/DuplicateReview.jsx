@@ -15,7 +15,7 @@ export default function DuplicateReview() {
     setError("");
     getDuplicateReviewQueue()
       .then((res) => setQueue(res.data.data))
-      .catch(() => setError("Queue load nahi ho payi."))
+      .catch(() => setError("Failed to load queue."))
       .finally(() => setLoading(false));
   };
 
@@ -24,7 +24,7 @@ export default function DuplicateReview() {
   const handleConfirm = async (complaintId) => {
     const originalComplaintId = selected[complaintId];
     if (!originalComplaintId) {
-      alert("Pehle ek original complaint select karo.");
+      alert("Please select an original complaint first.");
       return;
     }
     setActing(complaintId);
@@ -32,7 +32,7 @@ export default function DuplicateReview() {
       await reviewDuplicate(complaintId, { action: "confirm", originalComplaintId });
       setQueue((prev) => prev.filter((c) => c._id !== complaintId));
     } catch {
-      alert("Confirm fail ho gaya, dobara try karo.");
+      alert("Confirm failed, please try again.");
     } finally {
       setActing(null);
     }
@@ -44,7 +44,7 @@ export default function DuplicateReview() {
       await reviewDuplicate(complaintId, { action: "dismiss" });
       setQueue((prev) => prev.filter((c) => c._id !== complaintId));
     } catch {
-      alert("Dismiss fail ho gaya, dobara try karo.");
+      alert("Dismiss failed, please try again.");
     } finally {
       setActing(null);
     }
@@ -55,14 +55,13 @@ export default function DuplicateReview() {
       <div className="max-w-4xl mx-auto">
         <h1 className="text-2xl font-bold text-slate-900 mb-1">Duplicate Review</h1>
         <p className="text-sm text-slate-500 mb-6">
-          System ne jo possible duplicate complaints flag kiye hain, unhe confirm ya dismiss karo.
-        </p>
+          Complaints the system has flagged as possible duplicates — confirm or dismiss them.        </p>
 
         {loading && <p className="text-sm text-slate-500">Loading...</p>}
         {error && <p className="text-sm text-red-600">{error}</p>}
         {!loading && !error && queue.length === 0 && (
           <div className="bg-white border border-slate-200 rounded-xl p-8 text-center text-slate-400">
-            Review ke liye koi pending duplicate nahi hai.
+            No pending duplicates to review.
           </div>
         )}
 

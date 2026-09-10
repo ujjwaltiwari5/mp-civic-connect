@@ -53,7 +53,7 @@ export default function MyComplaints() {
                     to={`/complaints/${c._id}`}
                     className="block mt-2 bg-amber-50 border border-amber-200 rounded-md px-3 py-1.5 text-xs text-amber-700 font-medium hover:bg-amber-100"
                   >
-                    Resolved mark hua hai — confirm ya reopen karne ke liye yahan click karo →
+                    Marked as resolved — click here to confirm or reopen →
                   </Link>
                 )}
                 <p className="text-sm text-slate-600 mt-1">{c.description}</p>

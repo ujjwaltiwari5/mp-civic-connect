@@ -28,7 +28,7 @@ export default function UpdateComplaint() {
       await updateComplaintStatus(id, formData);
       navigate("/department/complaints");
     } catch {
-      setError("Update fail ho gaya, dobara try karo.");
+      setError("Update failed, please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -69,7 +69,7 @@ export default function UpdateComplaint() {
                 onChange={(e) => setNote(e.target.value)}
                 rows={3}
                 className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-                placeholder="Kya kaam hua, kya status hai..."
+                placeholder="What was done, what's the current status..."
               />
             </div>
 
