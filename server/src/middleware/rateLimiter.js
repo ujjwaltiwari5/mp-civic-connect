@@ -1,4 +1,4 @@
-import rateLimit from "express-rate-limit";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 
 export const registerLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -10,7 +10,7 @@ export const registerLimiter = rateLimit({
 
 export const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 6,
+  max: 10,
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, message: "Too many login attempts. Please try again in a few minutes." },
@@ -21,6 +21,6 @@ export const complaintLimiter = rateLimit({
   max: 10,
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => req.user?._id?.toString() || req.ip,
+  keyGenerator: (req) => req.user?._id?.toString() || ipKeyGenerator(req.ip),
   message: { success: false, message: "You've reached the hourly limit for submitting complaints. Please try again later." },
 });
