@@ -11,6 +11,9 @@ export default function Departments() {
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({ name: "", description: "" });
 
+  const [expandedId, setExpandedId] = useState(null);
+  const [deptUsers, setDeptUsers] = useState({}); // { [deptId]: { loading, error, users } }
+
   const fetchDepartments = async () => {
     try {
       const res = await api.get("/departments");
@@ -58,6 +61,26 @@ export default function Departments() {
       fetchDepartments();
     } catch (err) {
       setError(err.response?.data?.message || "Something went wrong");
+    }
+  };
+
+  const toggleUsers = async (deptId) => {
+    if (expandedId === deptId) {
+      setExpandedId(null);
+      return;
+    }
+    setExpandedId(deptId);
+    if (deptUsers[deptId]) return; // already fetched, use cache
+
+    setDeptUsers((prev) => ({ ...prev, [deptId]: { loading: true, error: "", users: [] } }));
+    try {
+      const res = await api.get(`/departments/${deptId}/users`);
+      setDeptUsers((prev) => ({ ...prev, [deptId]: { loading: false, error: "", users: res.data.data } }));
+    } catch (err) {
+      setDeptUsers((prev) => ({
+        ...prev,
+        [deptId]: { loading: false, error: err.response?.data?.message || "Could not load users", users: [] },
+      }));
     }
   };
 
@@ -114,13 +137,55 @@ export default function Departments() {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">{dept.name}</p>
-                      <p className="text-xs text-gray-500">{dept.description || "No description"}</p>
+                  <>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">{dept.name}</p>
+                        <p className="text-xs text-gray-500">{dept.description || "No description"}</p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <button onClick={() => toggleUsers(dept._id)} className="text-teal-700 text-xs font-medium hover:underline">
+                          {expandedId === dept._id ? "Hide Users" : "View Users"}
+                        </button>
+                        <button onClick={() => startEdit(dept)} className="text-teal-700 text-xs font-medium hover:underline">Edit</button>
+                      </div>
                     </div>
-                    <button onClick={() => startEdit(dept)} className="text-teal-700 text-xs font-medium hover:underline">Edit</button>
-                  </div>
+
+                    {expandedId === dept._id && (
+                      <div className="mt-3 pt-3 border-t border-gray-100">
+                        {deptUsers[dept._id]?.loading && (
+                          <p className="text-xs text-gray-500">Loading users...</p>
+                        )}
+                        {deptUsers[dept._id]?.error && (
+                          <p className="text-xs text-red-600">{deptUsers[dept._id].error}</p>
+                        )}
+                        {deptUsers[dept._id] && !deptUsers[dept._id].loading && !deptUsers[dept._id].error && (
+                          deptUsers[dept._id].users.length === 0 ? (
+                            <p className="text-xs text-gray-500">No staff assigned to this department yet.</p>
+                          ) : (
+                                                        <ul className="space-y-2">
+                              {deptUsers[dept._id].users.map((u) => (
+                                <li key={u._id} className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-xs">
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-semibold text-gray-900">{u.name}</span>
+                                    <span className={u.isActive ? "text-green-700 font-medium" : "text-red-600 font-medium"}>
+                                      {u.isActive ? "Active" : "Inactive"}
+                                    </span>
+                                  </div>
+                                  <div className="mt-1 text-gray-600">Email: {u.email}</div>
+                                  <div className="text-gray-600">Phone: {u.phone || "Not provided"}</div>
+                                  <div className="text-gray-600">Role: Department Staff</div>
+                                  <div className="text-gray-500">
+                                    Joined: {new Date(u.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                                  </div>
+                                </li>
+                              ))}
+                            </ul>
+                          )
+                        )}
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             ))}

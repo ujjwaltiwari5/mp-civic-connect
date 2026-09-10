@@ -1,5 +1,6 @@
 import { z } from "zod";
 import Department from "../models/Department.js";
+import User from "../models/User.js";
 
 const departmentSchema = z.object({
   name: z.string().min(2, "Department name must be at least 2 characters"),
@@ -55,6 +56,22 @@ export const updateDepartment = async (req, res, next) => {
     }
 
     res.status(200).json({ success: true, message: "Department updated successfully", data: department });
+  } catch (err) {
+    next(err);
+  }
+};
+export const getDepartmentUsers = async (req, res, next) => {
+  try {
+    const department = await Department.findById(req.params.id);
+    if (!department) {
+      return res.status(404).json({ success: false, message: "Department not found" });
+    }
+
+    const users = await User.find({ role: "department_user", department: req.params.id })
+      .select("name email phone isActive createdAt")
+      .sort({ name: 1 });
+
+    res.status(200).json({ success: true, data: users });
   } catch (err) {
     next(err);
   }
