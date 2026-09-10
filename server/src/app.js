@@ -9,18 +9,20 @@ import complaintRoutes from "./routes/complaint.routes.js";
 import wardRoutes from "./routes/ward.routes.js";
 import analyticsRoutes from "./routes/analytics.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
+import helmet from "helmet";
 
 import { notFound, errorHandler } from "./middleware/errorHandler.js";
 
 const app = express();
 
+app.use(helmet());
 app.use(
   cors({
     origin: process.env.CLIENT_URL,
     credentials: true,
   })
 );
-app.use(express.json());
+app.use(express.json({ limit: "10kb" }));
 app.use(cookieParser());
 
 app.use("/api/health", healthRoutes);

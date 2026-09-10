@@ -2,6 +2,7 @@ import express from "express";
 import { protect } from "../middleware/auth.middleware.js";
 import { authorize } from "../middleware/role.middleware.js";
 import upload from "../middleware/upload.middleware.js";
+import { complaintLimiter } from "../middleware/rateLimiter.js";
 import {
   createComplaint,
   getMyComplaints,
@@ -20,7 +21,7 @@ import {
 const router = express.Router();
 router.post("/recalculate-priorities", protect, authorize("admin"), recalculateAllPriorities);
 router.patch("/:id/recalculate-priority", protect, authorize("admin"), recalculatePriority);
-router.post("/", protect, upload.array("images", 5), createComplaint);
+router.post("/", protect, complaintLimiter, upload.array("images", 5), createComplaint);
 router.get("/mine", protect, getMyComplaints);
 router.get("/duplicates", protect, authorize("admin"), getDuplicateReviewQueue);
 router.get("/assigned", protect, authorize("department_user"), getAssignedComplaints);

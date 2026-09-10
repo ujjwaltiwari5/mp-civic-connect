@@ -8,6 +8,7 @@ import Ward from "../models/Ward.js";
 import { calculatePriorityScore } from "../services/priorityScoring.js";
 import { findPossibleDuplicates } from "../services/duplicateDetection.js";
 import { notifyUser, notifyDepartment } from "../services/notification.service.js";
+import { asString } from "../utils/sanitizeFilter.js";
 const createComplaintSchema = z.object({
   title: z.string().trim().min(3, "Title too short").max(120),
   description: z.string().trim().min(10, "Description too short").max(1000),
@@ -192,13 +193,17 @@ export const getAllComplaints = async (req, res) => {
     } = req.query;
 
     const filter = {};
-    if (status) filter.status = status;
-    if (category) filter.category = category;
-    if (department) filter.department = department;
-    if (search) {
+    const safeStatus = asString(status);
+    const safeCategory = asString(category);
+    const safeDepartment = asString(department);
+    const safeSearch = asString(search);
+    if (safeStatus) filter.status = safeStatus;
+    if (safeCategory) filter.category = safeCategory;
+    if (safeDepartment) filter.department = safeDepartment;
+    if (safeSearch) {
       filter.$or = [
-        { title: { $regex: search, $options: "i" } },
-        { description: { $regex: search, $options: "i" } },
+        { title: { $regex: safeSearch, $options: "i" } },
+        { description: { $regex: safeSearch, $options: "i" } },
       ];
     }
 
@@ -322,11 +327,13 @@ export const getAssignedComplaints = async (req, res) => {
     } = req.query;
 
     const filter = { department: req.user.department };
-    if (status) filter.status = status;
-    if (search) {
+    const safeStatus = asString(status);
+    const safeSearch = asString(search);
+    if (safeStatus) filter.status = safeStatus;
+    if (safeSearch) {
       filter.$or = [
-        { title: { $regex: search, $options: "i" } },
-        { description: { $regex: search, $options: "i" } },
+        { title: { $regex: safeSearch, $options: "i" } },
+        { description: { $regex: safeSearch, $options: "i" } },
       ];
     }
 
