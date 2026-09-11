@@ -16,6 +16,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 import ComplaintDetail from "./pages/ComplaintDetail";
 import DuplicateReview from "./pages/admin/DuplicateReview";
+import ManageUsers from "./pages/admin/ManageUsers";
 
 function App() {
   return (
@@ -73,6 +74,13 @@ function App() {
     </ProtectedRoute>
   }
 />
+<Route 
+  path="/admin/users"
+  element={
+   <ProtectedRoute roles={["admin"]}>
+    <ManageUsers />
+    </ProtectedRoute>} 
+  />
    <Route
     path="/complaints/new"
     element={

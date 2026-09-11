@@ -10,6 +10,7 @@ import wardRoutes from "./routes/ward.routes.js";
 import analyticsRoutes from "./routes/analytics.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
 import helmet from "helmet";
+import userRoutes from "./routes/user.routes.js";
 
 import { notFound, errorHandler } from "./middleware/errorHandler.js";
 
@@ -33,6 +34,7 @@ app.use("/api/complaints", complaintRoutes);
 app.use("/api/wards", wardRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/users", userRoutes);
 app.use(notFound);
 app.use(errorHandler);
 

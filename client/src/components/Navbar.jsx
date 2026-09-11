@@ -40,6 +40,7 @@ export default function Navbar() {
                   <NavLink to="/admin/duplicates" className={linkClass}>Duplicate Review</NavLink>
                   <NavLink to="/admin/departments" className={linkClass}>Departments</NavLink>
                   <NavLink to="/admin/categories" className={linkClass}>Categories</NavLink>
+                  <NavLink to="/admin/users" className={linkClass}>Users</NavLink>
                 </>
               )}
               {user.role === "department_user" && (
