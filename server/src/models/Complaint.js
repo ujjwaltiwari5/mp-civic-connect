@@ -24,14 +24,13 @@ const complaintSchema = new mongoose.Schema(
       ref: "Category",
       required: true,
     },
-    // Phase 9 me admin assign karega — abhi null rahega
     department: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Department",
       default: null,
     },
     images: {
-      type: [String], // Cloudinary secure URLs
+      type: [String],
       default: [],
     },
     location: {
@@ -41,7 +40,7 @@ const complaintSchema = new mongoose.Schema(
         default: "Point",
       },
       coordinates: {
-        type: [Number], // [lng, lat]
+        type: [Number],
         required: true,
       },
     },
@@ -58,26 +57,63 @@ const complaintSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
-    // ---- Phase 11: priority scoring ----
     severity: {
       type: String,
       enum: ["low", "medium", "high"],
-      default: null, // Phase 11 se pehle ki complaints ke liye null rahega
+      default: null,
+    },
+    // ---- urban location ----
+    city: {
+      type: String,
+      trim: true,
+      default: null, // urban complaints only
     },
     ward: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Ward",
-      default: null, // Phase 11 se pehle ki complaints ke liye null rahega
+      default: null, // set only when the ward was picked from the seeded Bhopal list
+    },
+    wardName: {
+      type: String,
+      trim: true,
+      default: null, // free-typed ward name — used for any city other than Bhopal,
+      // or when the citizen's ward wasn't in Bhopal's seeded list either
+    },
+    // ---- MP statewide expansion: rural location (Ward ka alternative) ----
+    locationType: {
+      type: String,
+      enum: ["urban", "rural"],
+      default: "urban",
+    },
+    district: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "District",
+      default: null, // rural complaints only
+    },
+    tehsil: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Tehsil",
+      default: null, // rural complaints only
+    },
+    block: {
+      type: String,
+      trim: true,
+      default: null, // rural complaints only — free text
+    },
+    village: {
+      type: String,
+      trim: true,
+      default: null, // rural complaints only — free text
     },
     duplicateCount: {
       type: Number,
-      default: 0, // Phase 12 (duplicate detection) tak hamesha 0
+      default: 0,
       min: 0,
     },
         duplicateOf: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Complaint",
-      default: null, // set hota hai jab admin confirm karta hai ki ye duplicate hai
+      default: null,
     },
     duplicateReviewStatus: {
       type: String,

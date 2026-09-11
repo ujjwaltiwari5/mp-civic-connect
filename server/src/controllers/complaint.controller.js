@@ -5,21 +5,74 @@ import Category from "../models/Category.js";
 import { reverseGeocode } from "../utils/geocode.js";
 import Department from "../models/Department.js";
 import Ward from "../models/Ward.js";
+import District from "../models/District.js";
+import Tehsil from "../models/Tehsil.js";
 import { calculatePriorityScore } from "../services/priorityScoring.js";
 import { findPossibleDuplicates } from "../services/duplicateDetection.js";
 import { notifyUser, notifyDepartment } from "../services/notification.service.js";
 import { asString } from "../utils/sanitizeFilter.js";
-const createComplaintSchema = z.object({
-  title: z.string().trim().min(3, "Title too short").max(120),
-  description: z.string().trim().min(10, "Description too short").max(1000),
-  category: z.string().min(1, "Category is required"),
-  severity: z.enum(["low", "medium", "high"], {
-    errorMap: () => ({ message: "Severity must be low, medium, or high" }),
-  }),
-  ward: z.string().min(1, "Ward is required"),
-  lat: z.coerce.number().min(-90).max(90),
-  lng: z.coerce.number().min(-180).max(180),
-});
+
+const createComplaintSchema = z
+  .object({
+    title: z.string().trim().min(3, "Title too short").max(120),
+    description: z.string().trim().min(10, "Description too short").max(1000),
+    category: z.string().min(1, "Category is required"),
+    severity: z.enum(["low", "medium", "high"], {
+      errorMap: () => ({ message: "Severity must be low, medium, or high" }),
+    }),
+    locationType: z.enum(["urban", "rural"]).default("urban"),
+    // urban fields
+    city: z.string().trim().max(100).optional(),
+    ward: z.string().optional(), // Ward ObjectId — set only when picked from the seeded Bhopal list
+    wardName: z.string().trim().max(100).optional(), // free-typed ward — any other city, or Bhopal fallback
+    // rural fields
+    district: z.string().optional(),
+    tehsil: z.string().optional(),
+    block: z.string().trim().max(100).optional(),
+    village: z.string().trim().max(100).optional(),
+    lat: z.coerce.number().min(-90).max(90),
+    lng: z.coerce.number().min(-180).max(180),
+  })
+  .superRefine((data, ctx) => {
+    if (data.locationType === "urban") {
+      if (!data.city || !data.city.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["city"],
+          message: "City is required for an urban complaint",
+        });
+      }
+      if (!data.ward && (!data.wardName || !data.wardName.trim())) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["ward"],
+          message: "Ward is required for an urban complaint",
+        });
+      }
+    } else {
+      if (!data.district) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["district"],
+          message: "District is required for a rural complaint",
+        });
+      }
+      if (!data.tehsil) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["tehsil"],
+          message: "Tehsil is required for a rural complaint",
+        });
+      }
+      if (!data.village || !data.village.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["village"],
+          message: "Village is required for a rural complaint",
+        });
+      }
+    }
+  });
 
 export const createComplaint = async (req, res) => {
   try {
@@ -31,7 +84,22 @@ export const createComplaint = async (req, res) => {
         error: parsed.error.flatten(),
       });
     }
-    const { title, description, category, severity, ward, lat, lng } = parsed.data;
+    const {
+      title,
+      description,
+      category,
+      severity,
+      locationType,
+      city,
+      ward,
+      wardName,
+      district,
+      tehsil,
+      block,
+      village,
+      lat,
+      lng,
+    } = parsed.data;
 
     const categoryExists = await Category.findById(category);
     if (!categoryExists) {
@@ -41,12 +109,39 @@ export const createComplaint = async (req, res) => {
       });
     }
 
-    const wardExists = await Ward.findById(ward);
-    if (!wardExists) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid ward",
-      });
+    let wardExists = null; // only set for urban complaints where the ward was picked from the seeded list
+    let districtExists = null;
+    let tehsilExists = null;
+    let resolvedWardName = null;
+
+    if (locationType === "urban") {
+      if (ward) {
+        wardExists = await Ward.findById(ward);
+        if (!wardExists) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid ward",
+          });
+        }
+        resolvedWardName = wardExists.name;
+      } else {
+        resolvedWardName = wardName.trim();
+      }
+    } else {
+      districtExists = await District.findById(district);
+      if (!districtExists) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid district",
+        });
+      }
+      tehsilExists = await Tehsil.findById(tehsil);
+      if (!tehsilExists || tehsilExists.district.toString() !== district) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid tehsil for the selected district",
+        });
+      }
     }
 
     const images = (req.files || []).map((f) => f.path); // Cloudinary URLs
@@ -57,11 +152,16 @@ export const createComplaint = async (req, res) => {
       address = null;
     }
 
+    // A complaint has locationImportance only when it's tied to a known,
+    // weighted Bhopal ward. Rural complaints, and urban complaints from a
+    // ward that isn't in the seeded list, leave it undefined — calculatePriorityScore
+    // already falls back to a neutral 0.5 default for any missing factor
+    // (the same pattern used for pre-Phase-11 legacy data).
     const { priorityScore, priorityBreakdown } = calculatePriorityScore({
       severity,
       duplicateCount: 0,
       categoryWeight: categoryExists.priorityWeight,
-      locationImportance: wardExists.importanceWeight,
+      locationImportance: wardExists ? wardExists.importanceWeight : undefined,
       createdAt: new Date(),
     });
 
@@ -71,7 +171,14 @@ export const createComplaint = async (req, res) => {
       description,
       category,
       severity,
-      ward,
+      locationType,
+      city: locationType === "urban" ? city.trim() : null,
+      ward: locationType === "urban" && wardExists ? wardExists._id : null,
+      wardName: locationType === "urban" ? resolvedWardName : null,
+      district: locationType === "rural" ? district : null,
+      tehsil: locationType === "rural" ? tehsil : null,
+      block: locationType === "rural" ? block || null : null,
+      village: locationType === "rural" ? village : null,
       images,
       location: { type: "Point", coordinates: [lng, lat] },
       address,
@@ -138,7 +245,10 @@ export const getComplaintById = async (req, res) => {
   try {
     const complaint = await Complaint.findById(req.params.id)
       .populate("category", "name")
-      .populate("department", "name");
+      .populate("department", "name")
+      .populate("ward", "name")
+      .populate("district", "name")
+      .populate("tehsil", "name");
 
     if (!complaint) {
       return res.status(404).json({
@@ -219,6 +329,9 @@ export const getAllComplaints = async (req, res) => {
         .populate("category", "name")
         .populate("department", "name")
         .populate("reporter", "name email")
+        .populate("ward", "name")
+        .populate("district", "name")
+        .populate("tehsil", "name")
         .sort({ [sortField]: sortOrder })
         .skip(skip)
         .limit(limitNum),

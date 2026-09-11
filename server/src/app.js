@@ -11,6 +11,9 @@ import analyticsRoutes from "./routes/analytics.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
 import helmet from "helmet";
 import userRoutes from "./routes/user.routes.js";
+import districtRoutes from "./routes/district.routes.js";
+import tehsilRoutes from "./routes/tehsil.routes.js";
+import geocodeRoutes from "./routes/geocode.routes.js";
 
 import { notFound, errorHandler } from "./middleware/errorHandler.js";
 
@@ -35,6 +38,9 @@ app.use("/api/wards", wardRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/districts", districtRoutes);
+app.use("/api/tehsils", tehsilRoutes);
+app.use("/api/geocode", geocodeRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
