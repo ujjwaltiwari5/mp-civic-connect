@@ -60,13 +60,13 @@ export default function Home() {
       <section className="bg-gradient-to-br from-teal-800 via-teal-700 to-teal-600 text-white">
         <div className="max-w-5xl mx-auto px-4 py-20 text-center">
           <span className="inline-block text-xs font-semibold tracking-wide uppercase bg-white/15 rounded-full px-3 py-1 mb-4">
-            Municipal Corporation of Bhopal
+            Municipal Corporation of MadhyaPradesh
           </span>
           <h1 className="text-4xl sm:text-5xl font-bold mb-4 leading-tight">
-            Report civic issues.<br />See them resolved.
+            Report public issues.<br />See them resolved.
           </h1>
           <p className="text-teal-50/90 text-base sm:text-lg max-w-2xl mx-auto mb-8">
-            Bhopal CivicConnect connects citizens directly with the departments
+            Government of MadhyaPradesh connects public directly with the departments
             responsible for fixing potholes, water leaks, streetlights, and more —
             with full visibility from report to resolution.
           </p>

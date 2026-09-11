@@ -111,6 +111,26 @@ function VerifyResolutionCard({ complaintId, onVerified }) {
   );
 }
 
+// Renders "Ward: X, City" for an urban complaint, or the District/Tehsil/Block/Village
+// chain for a rural one — whichever the complaint actually has.
+function LocationSummary({ complaint }) {
+  if (complaint.locationType === "rural") {
+    const parts = [
+      complaint.village,
+      complaint.block,
+      complaint.tehsil?.name && `${complaint.tehsil.name} Tehsil`,
+      complaint.district?.name,
+    ].filter(Boolean);
+    if (parts.length === 0) return null;
+    return <p className="text-xs text-slate-500 mt-1">{parts.join(", ")}, Madhya Pradesh</p>;
+  }
+  // Urban: prefer the seeded Ward's name (Bhopal), fall back to the free-typed wardName
+  const wardLabel = complaint.ward?.name || complaint.wardName;
+  const parts = [wardLabel && `Ward: ${wardLabel}`, complaint.city].filter(Boolean);
+  if (parts.length === 0) return null;
+  return <p className="text-xs text-slate-500 mt-1">{parts.join(", ")}</p>;
+}
+
 export default function ComplaintDetail() {
   const { id } = useParams();
   const { user } = useAuth();
@@ -186,6 +206,7 @@ export default function ComplaintDetail() {
           )}
 
           {complaint.address && <p className="text-xs text-slate-400 mt-2">{complaint.address}</p>}
+          <LocationSummary complaint={complaint} />
           {coords && (
             <div className="h-40 w-full rounded-lg overflow-hidden border border-slate-200 mt-2">
               <MapContainer
