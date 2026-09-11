@@ -23,10 +23,10 @@ export default function Navbar() {
       <div className="max-w-6xl mx-auto flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
           <span className="w-8 h-8 rounded-lg bg-teal-700 text-white flex items-center justify-center font-bold text-xs">
-            GMP
+            MPC
           </span>
           <span className="font-semibold text-slate-900 text-sm hidden sm:inline">
-            Government of MadhyaPradesh
+           MadhyaPradesh-Civic
           </span>
         </Link>
 

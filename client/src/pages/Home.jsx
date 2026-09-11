@@ -66,7 +66,7 @@ export default function Home() {
             Report public issues.<br />See them resolved.
           </h1>
           <p className="text-teal-50/90 text-base sm:text-lg max-w-2xl mx-auto mb-8">
-            Government of MadhyaPradesh connects public directly with the departments
+             MadhyaPradesh-Civic connects public directly with the departments
             responsible for fixing potholes, water leaks, streetlights, and more —
             with full visibility from report to resolution.
           </p>
