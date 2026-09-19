@@ -30,11 +30,11 @@ export default function Login() {
       <div className="w-full max-w-sm bg-white rounded-xl shadow-md border border-slate-200 p-6">
         <div className="flex justify-center mb-4">
           <span className="w-10 h-10 rounded-lg bg-teal-700 text-white flex items-center justify-center font-bold text-sm">
-            BC
+            MPC
           </span>
         </div>
         <h1 className="text-xl font-bold text-gray-900 mb-1 text-center">Welcome back</h1>
-        <p className="text-sm text-gray-500 mb-6 text-center">Log in to Bhopal CivicConnect</p>
+        <p className="text-sm text-gray-500 mb-6 text-center">Log in to MadhyaPradesh-Civic</p>
 
         {error && (
           <div className="mb-4 text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">
