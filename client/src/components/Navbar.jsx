@@ -30,7 +30,7 @@ export default function Navbar() {
           </span>
         </Link>
 
-        <div className="flex items-center gap-5">
+      <div className="flex items-center gap-5">
           {user ? (
             <>
               {user.role === "admin" && (
